@@ -1,0 +1,168 @@
+.wordle-header {
+  display: flex;
+  align-items: center;
+  justify-content: center; 
+  padding: 0 1rem;
+  margin-top: 0.5rem;
+}
+
+
+.wordle-title {
+  font-size: 24px;
+  color: #ffffff;
+  margin: 0;
+}
+
+.wordle-trophy {
+  display: flex;
+  margin-top: 1%;
+}
+
+.trophy-icon {
+  position: absolute; 
+  right: 1rem; 
+  font-size: 24px;
+  color: gold;
+}
+
+.wordle-divider {
+  width: 99%;
+  border: 1px solid #5c5b59;
+}
+
+.wordle-grid {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 5px;
+  margin: 0 auto;
+}
+
+.wordle-row {
+  display: flex;
+  gap: 5px;
+}
+
+.wordle-box {
+  width: 50px;
+  height: 50px;
+  border: 1px solid #5c5b59;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  text-transform: uppercase;
+}
+
+.keyboard {
+  display: grid;
+  grid-template-columns: repeat(11, 1fr); 
+  gap: 5px;
+  max-width: 55%;
+  margin: 0 auto;
+  padding: 2%;
+  padding-bottom: 0%;
+}
+
+.key, .specialKey {
+  background-color: #555;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  height: 50px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.third-row {
+  grid-template-columns: 1.5fr repeat(8, 1fr) 1.5fr; 
+  grid-column: span 11;
+  display: grid;
+  gap: 5px;
+}
+
+@media (max-width: 768px) {
+  .wordle-title {
+    font-size: 20px; 
+  }
+
+  .trophy-icon {
+    font-size: 20px;
+  }
+
+  .wordle-box {
+    width: 40px; 
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .key, .specialKey {
+    height: 40px;
+    font-size: 14px;
+  }
+
+  .keyboard {
+    display: grid;
+    grid-template-columns: repeat(11, 1fr);
+    gap: 5px;
+    max-width: 95%;
+    margin: 0 auto;
+    margin-top: 3%;
+    padding: 2%;
+  }
+
+  .wordle-grid {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 18%;
+  }
+}
+
+@media (max-width: 480px) {
+  .wordle-header {
+    flex-direction: column; 
+    align-items: center;
+  }
+
+  .wordle-title {
+    font-size: 18px;
+  }
+
+  .trophy-icon {
+    font-size: 18px;
+  }
+
+  .wordle-box {
+    width: 35px; 
+    height: 35px;
+    font-size: 14px;
+  }
+
+  .key, .specialKey {
+    height: 35px;
+    font-size: 12px;
+  }
+
+  .keyboard {
+    display: grid;
+    grid-template-columns: repeat(11, 1fr); 
+    gap: 5px;
+    max-width: 95%;
+    margin: 0 auto;
+    margin-top: 3%;
+    padding: 2%;
+  }
+
+  .wordle-grid {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 18%;
+  }
+}
