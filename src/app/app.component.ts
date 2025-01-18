@@ -1,6 +1,6 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, Inject, PLATFORM_ID } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { NgFor } from '@angular/common';
+import { isPlatformBrowser, NgFor } from '@angular/common';
 
 @Component({
   selector: 'app-root',
@@ -49,6 +49,40 @@ export class AppComponent {
   currentRow: number = 0;
   currentCol: number = 0;
 
+  gridWidth: string = '100%';
+  gridHeight: string = '60vh'; 
+  isBrowser: boolean; 
+
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+    this.isBrowser = isPlatformBrowser(this.platformId); 
+  }
+
+  ngOnInit() {
+    if (this.isBrowser) {
+      this.updateGridDimensions();
+    }
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize() {
+    if (this.isBrowser) {
+      this.updateGridDimensions();
+    }
+  }
+
+  updateGridDimensions() {
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+  
+
+    const gridHeight = viewportHeight * 0.5; 
+    const keyboardHeight = viewportHeight * 0.4; 
+  
+    this.gridHeight = `${gridHeight}px`;
+    this.gridWidth = Math.min(viewportWidth * 0.9, 500) + 'px'; 
+
+    document.documentElement.style.setProperty('--keyboard-height', `${keyboardHeight}px`);
+  }
   typeCharacter(char: string) {
     if (this.currentRow < 6 && this.currentCol < 5) {
       this.grid[this.currentRow][this.currentCol] = char; 
@@ -84,4 +118,5 @@ export class AppComponent {
       this.submit();
     }
   }
+  
 }
