@@ -71,18 +71,19 @@ export class AppComponent {
   }
 
   updateGridDimensions() {
-    const viewportHeight = window.innerHeight;
-    const viewportWidth = window.innerWidth;
+    // const viewportHeight = window.innerHeight;
+    // const viewportWidth = window.innerWidth;
   
 
-    const gridHeight = viewportHeight * 0.5; 
-    const keyboardHeight = viewportHeight * 0.4; 
+    // const gridHeight = viewportHeight * 0.5; 
+    // const keyboardHeight = viewportHeight * 0.4; 
   
-    this.gridHeight = `${gridHeight}px`;
-    this.gridWidth = Math.min(viewportWidth * 0.9, 500) + 'px'; 
+    // this.gridHeight = `${gridHeight}px`;
+    // this.gridWidth = Math.min(viewportWidth * 0.9, 500) + 'px'; 
 
-    document.documentElement.style.setProperty('--keyboard-height', `${keyboardHeight}px`);
+    // document.documentElement.style.setProperty('--keyboard-height', `${keyboardHeight}px`);
   }
+
   typeCharacter(char: string) {
     if (this.currentRow < 6 && this.currentCol < 5) {
       this.grid[this.currentRow][this.currentCol] = char; 
