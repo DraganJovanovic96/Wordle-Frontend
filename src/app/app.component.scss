@@ -1,3 +1,17 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%; 
+  display: flex;
+  flex-direction: column;
+}
+
+app-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%; 
+}
+
 .wordle-header {
   display: flex;
   align-items: center;
@@ -8,7 +22,7 @@
 
 
 .wordle-title {
-  font-size: 24px;
+  font-size: 44px;
   color: #ffffff;
   margin: 0;
 }
@@ -84,34 +98,39 @@
   gap: 5px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .wordle-title {
-    font-size: 20px; 
+    font-size: 5vh;
   }
 
   .trophy-icon {
-    font-size: 20px;
+    font-size: 3vh;
   }
 
   .wordle-box {
-    width: 40px; 
-    height: 40px;
-    font-size: 16px;
+    width: 15vw; 
+    height: 9vh;
+    font-size: 4dvh;
   }
 
-  .key, .specialKey {
-    height: 40px;
-    font-size: 14px;
+  .key {
+    height: 13.6vw;
+    font-size: 4dvw;
+  }
+
+  .specialKey {
+    height: 13.6vw;
+    width: 15vw;
+    font-size: 3.8dvw;
   }
 
   .keyboard {
     display: grid;
-    grid-template-columns: repeat(11, 1fr);
+    grid-template-columns: repeat(11, 1fr); 
     gap: 5px;
     max-width: 95%;
     margin: 0 auto;
     margin-top: 3%;
-    padding: 2%;
   }
 
   .wordle-grid {
@@ -119,7 +138,6 @@
     align-items: center;
     flex-direction: column;
     gap: 5px;
-    margin-bottom: 18%;
   }
 }
 
@@ -130,39 +148,45 @@
   }
 
   .wordle-title {
-    font-size: 25px;
+    font-size: 5dvh;
   }
 
   .trophy-icon {
-    font-size: 25px;
+    font-size: 3dvh;
   }
 
   .wordle-box {
-    width: 60px; 
-    height: 70px;
-    font-size: 14px;
+    width: 14dvw; 
+    height: 8dvh;
+    font-size: 4dvh;
   }
 
-  .key, .specialKey {
-    height: 65px;
-    font-size: 12px;
+  .key {
+    height: 16.6dvw;
+    font-size: 4dvw;
+  }
+
+  .specialKey {
+    height: 16.6dvw;
+    width: 13dvw;
+    font-size: 3.8dvw;
   }
 
   .keyboard {
     display: grid;
     grid-template-columns: repeat(11, 1fr); 
-    gap: 5px;
     max-width: 95%;
+    position: absolute;
+    bottom: 4dvh; 
+    left: 0; 
+    right: 0;
     margin: 0 auto;
-    margin-top: 3%;
-    padding: 2%;
   }
 
   .wordle-grid {
     display: flex;
     align-items: center;
     flex-direction: column;
-    gap: 5px;
-    margin-bottom: 18%;
+    gap: 0.75dvh;
   }
 }
