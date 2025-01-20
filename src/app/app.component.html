@@ -8,11 +8,8 @@
   <!-- Grid Section -->
   <div class="wordle-grid">
     <div class="wordle-row" *ngFor="let row of grid; let rowIndex = index">
-      <div
-        class="wordle-box"
-        *ngFor="let box of row; let colIndex = index"
-        [ngStyle]="{ 'background-color': colors[rowIndex][colIndex] }"
-      >
+      <div class="wordle-box" *ngFor="let box of row; let colIndex = index"
+        [ngStyle]="{ 'background-color': colors[rowIndex][colIndex] }">
         {{ box }}
       </div>
     </div>
@@ -21,34 +18,22 @@
   <!-- Keyboard Section -->
   <div class="keyboard">
     <!-- First row -->
-      <button
-        class="key"
-        *ngFor="let letter of ['Љ', 'Њ', 'Е', 'Р', 'Т', 'З', 'У', 'И', 'О', 'П', 'Ш']"
-        [ngStyle]="{ 'background-color': getKeyboardKeyColor(letter) }"
-        (click)="typeCharacter(letter)"
-      >
-        {{ letter }}
-      </button>
+    <button class="key" *ngFor="let letter of ['Љ', 'Њ', 'Е', 'Р', 'Т', 'З', 'У', 'И', 'О', 'П', 'Ш']"
+      [ngStyle]="{ 'background-color': getKeyboardKeyColor(letter.toLowerCase()) }" (click)="typeCharacter(letter)">
+      {{ letter }}
+    </button>
 
     <!-- Second row -->
-      <button
-        class="key"
-        *ngFor="let letter of ['А', 'С', 'Д', 'Ф', 'Г', 'Х', 'Ј', 'К', 'Л', 'Ч', 'Ћ']"
-        [ngStyle]="{ 'background-color': getKeyboardKeyColor(letter) }"
-        (click)="typeCharacter(letter)"
-      >
-        {{ letter }}
-      </button>
+    <button class="key" *ngFor="let letter of ['А', 'С', 'Д', 'Ф', 'Г', 'Х', 'Ј', 'К', 'Л', 'Ч', 'Ћ']"
+      [ngStyle]="{ 'background-color': getKeyboardKeyColor(letter.toLowerCase()) }" (click)="typeCharacter(letter)">
+      {{ letter }}
+    </button>
 
     <!-- Third row -->
     <div class="third-row">
       <button class="specialKey" (click)="submit()">ENTER</button>
-      <button
-        class="key"
-        *ngFor="let letter of ['Џ', 'Ц', 'В', 'Б', 'Н', 'М', 'Ђ', 'Ж']"
-        [ngStyle]="{ 'background-color': getKeyboardKeyColor(letter) }"
-        (click)="typeCharacter(letter)"
-      >
+      <button class="key" *ngFor="let letter of ['Џ', 'Ц', 'В', 'Б', 'Н', 'М', 'Ђ', 'Ж']"
+        [ngStyle]="{ 'background-color': getKeyboardKeyColor(letter.toLowerCase()) }" (click)="typeCharacter(letter)">
         {{ letter }}
       </button>
       <button class="specialKey" (click)="deleteCharacter()">
