@@ -1,6 +1,9 @@
 import { Component, HostListener, Inject, PLATFORM_ID } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule, NgFor } from '@angular/common';
+import { MatDialog } from '@angular/material/dialog';
+import { NotificationDialogComponent } from './notification-dialog/notification-dialog.component';
+
 
 @Component({
   selector: 'app-root',
@@ -11,6 +14,8 @@ import { CommonModule, NgFor } from '@angular/common';
 })
 export class AppComponent {
   title = 'Wordle-Frontend';
+
+  constructor(private dialog: MatDialog) {}
 
   keyboardMapping: { [key: string]: string } = {
     q: 'Љ', w: 'Њ', e: 'Е', r: 'Р', t: 'Т', y: 'З', u: 'У', i: 'И',
@@ -24,6 +29,13 @@ export class AppComponent {
   keyboardColors: { [key: string]: string } = {};
   currentRow = 0;
   currentCol = 0;
+
+  notificationMessage: string | null = null;
+  notificationType: string = 'success'; 
+
+  ngOnInit() {
+    this.startGame();
+  }
 
   typeCharacter(char: string) {
     if (this.currentRow < 6 && this.currentCol < 5) {
@@ -47,12 +59,12 @@ export class AppComponent {
     if (this.currentCol === 5) {
       const guessedWord = this.grid[this.currentRow].join('');
       const playerId = 'd339d64b-b29a-4f11-8b59-f6f71f521310';
-
+  
       const payload = {
         playerId,
         guessedWord,
       };
-
+  
       fetch('http://localhost:8080/api/v1/game/submit-guess', {
         method: 'PUT',
         headers: {
@@ -62,46 +74,58 @@ export class AppComponent {
       })
         .then((response) => {
           if (!response.ok) {
-            throw new Error(`Error: ${response.statusText}`);
+            switch (response.status) {
+              case 400:
+                return response.text().then((message) => {
+                  this.openNotificationDialog( message || 'Лош захтев.');
+                  throw new Error(message || 'Лош захтев.');
+                });
+              case 404:
+                this.openNotificationDialog( "Дата реч није у нашој бази!");
+                throw new Error("Дата реч није у нашој бази!");
+              case 409:
+                this.openNotificationDialog( 'Реч је већ искоришћена.');
+                throw new Error('Реч је већ искоришћена.');
+              default:
+                this.openNotificationDialog( `Неочекивана грешка: ${response.statusText}`);
+                throw new Error(`Неочекивана грешка: ${response.statusText}`);
+            }
           }
           return response.json();
         })
         .then((data) => {
-          console.log('Server response:', data);
-
           const characters = data.guessedWordsDto[data.guessedWordsDto.length - 1].characters;
-
           const updatedRowColors = Array(5).fill('');
           Object.entries(characters).forEach(([index, status]) => {
-            const idx = parseInt(index, 10); 
-            const letter = guessedWord[idx]; 
-
+            const idx = parseInt(index, 10);
+            const letter = guessedWord[idx];
+  
             if (status === 'CORRECT') {
-              updatedRowColors[idx] = '#568c52';
-              this.updateKeyboardColor(letter, '#568c52'); 
+              updatedRowColors[idx] = '#568c52'; // Green
+              this.updateKeyboardColor(letter, '#568c52');
             } else if (status === 'PRESENT_BUT_MISPLACED') {
-              updatedRowColors[idx] = '#b49e45';
-              this.updateKeyboardColor(letter, '#b49e45'); 
+              updatedRowColors[idx] = '#b49e45'; // Yellow
+              this.updateKeyboardColor(letter, '#b49e45');
             } else {
-              updatedRowColors[idx] = '#3a3a3c';
-              this.updateKeyboardColor(letter, '#3a3a3c'); 
+              updatedRowColors[idx] = '#3a3a3c'; // Gray
+              this.updateKeyboardColor(letter, '#3a3a3c');
             }
           });
-
+  
           this.colors[this.currentRow] = updatedRowColors;
-
           this.currentRow++;
           this.currentCol = 0;
         })
         .catch((error) => {
-          console.error('Error submitting guess:', error);
-
+          console.error('Error submitting guess:', error.message);
+  
           this.grid[this.currentRow] = Array(5).fill('');
           this.colors[this.currentRow] = Array(5).fill('');
           this.currentCol = 0;
         });
     }
   }
+  
 
   startGame() {
     const playerId = "d339d64b-b29a-4f11-8b59-f6f71f521310";
@@ -110,12 +134,21 @@ export class AppComponent {
     };
 
     fetch("http://localhost:8080/api/v1/game/start", {
-      method: "GET",
+      method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify(payload)
     })
+  }
+
+  showNotification(message: string, type: 'success' | 'error' = 'success') {
+    this.notificationMessage = message;
+    this.notificationType = type;
+  
+    setTimeout(() => {
+      this.notificationMessage = null; // Clear the notification after 3 seconds
+    }, 3000);
   }
 
   @HostListener('window:keydown', ['$event'])
@@ -145,5 +178,14 @@ export class AppComponent {
     if (color === '#b49e45') return 2; // Yellow
     if (color === '#3a3a3c') return 1; // Gray
     return 0; // Default
+  }
+
+  openNotificationDialog( message: string): void {
+    this.dialog.open(NotificationDialogComponent, {
+      data: { message },
+      panelClass: 'custom-dialog-container',
+      hasBackdrop: false,
+      position: { top: '5%' },
+    });
   }
 }
