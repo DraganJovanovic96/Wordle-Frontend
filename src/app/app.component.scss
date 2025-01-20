@@ -1,7 +1,8 @@
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
-  height: 100%; 
+  height: 100%;
   display: flex;
   flex-direction: column;
 }
@@ -9,17 +10,16 @@ html, body {
 app-root {
   display: flex;
   flex-direction: column;
-  height: 100%; 
+  height: 100%;
 }
 
 .wordle-header {
   display: flex;
   align-items: center;
-  justify-content: center; 
+  justify-content: center;
   padding: 0 1rem;
   margin-top: 0.5rem;
 }
-
 
 .wordle-title {
   font-size: 44px;
@@ -33,8 +33,8 @@ app-root {
 }
 
 .trophy-icon {
-  position: absolute; 
-  right: 1rem; 
+  position: absolute;
+  right: 1rem;
   font-size: 24px;
   color: gold;
 }
@@ -70,7 +70,7 @@ app-root {
 
 .keyboard {
   display: grid;
-  grid-template-columns: repeat(11, 1fr); 
+  grid-template-columns: repeat(11, 1fr);
   gap: 5px;
   max-width: 55%;
   margin: 0 auto;
@@ -78,7 +78,8 @@ app-root {
   padding-bottom: 0%;
 }
 
-.key, .specialKey {
+.key,
+.specialKey {
   background-color: #818384;
   color: #fff;
   border: none;
@@ -92,7 +93,7 @@ app-root {
 }
 
 .third-row {
-  grid-template-columns: 1.5fr repeat(8, 1fr) 1.5fr; 
+  grid-template-columns: 1.5fr repeat(8, 1fr) 1.5fr;
   grid-column: span 11;
   display: grid;
   gap: 5px;
@@ -108,7 +109,7 @@ app-root {
   }
 
   .wordle-box {
-    width: 15vw; 
+    width: 15vw;
     height: 9vh;
     font-size: 4dvh;
   }
@@ -126,7 +127,7 @@ app-root {
 
   .keyboard {
     display: grid;
-    grid-template-columns: repeat(11, 1fr); 
+    grid-template-columns: repeat(11, 1fr);
     gap: 5px;
     max-width: 95%;
     margin: 0 auto;
@@ -143,7 +144,7 @@ app-root {
 
 @media (max-width: 480px) {
   .wordle-header {
-    flex-direction: column; 
+    flex-direction: column;
     align-items: center;
   }
 
@@ -156,7 +157,7 @@ app-root {
   }
 
   .wordle-box {
-    width: 14dvw; 
+    width: 14dvw;
     height: 8dvh;
     font-size: 4dvh;
   }
@@ -174,11 +175,11 @@ app-root {
 
   .keyboard {
     display: grid;
-    grid-template-columns: repeat(11, 1fr); 
+    grid-template-columns: repeat(11, 1fr);
     max-width: 95%;
     position: absolute;
-    bottom: 4dvh; 
-    left: 0; 
+    bottom: 4dvh;
+    left: 0;
     right: 0;
     margin: 0 auto;
   }

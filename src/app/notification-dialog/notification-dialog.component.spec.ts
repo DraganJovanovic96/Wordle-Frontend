@@ -10,8 +10,8 @@ describe('NotificationDialogComponent', () => {
     await TestBed.configureTestingModule({
       imports: [NotificationDialogComponent]
     })
-    .compileComponents();
-    
+      .compileComponents();
+
     fixture = TestBed.createComponent(NotificationDialogComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

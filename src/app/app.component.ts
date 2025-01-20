@@ -2,8 +2,20 @@ import { Component, HostListener, Inject, PLATFORM_ID } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule, NgFor } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
+import { ChangeDetectorRef } from '@angular/core';
 import { NotificationDialogComponent } from './notification-dialog/notification-dialog.component';
 
+interface GuessedWord {
+  guessedWord: string;
+  characters: { [key: string]: 'CORRECT' | 'PRESENT_BUT_MISPLACED' | 'NOT_PRESENT' };
+}
+
+interface GameData {
+  gameStatus: 'IN_PROGRESS' | 'COMPLETED';
+  numberOfTries: number;
+  playerId: string;
+  guessedWordsDto: GuessedWord[];
+}
 
 @Component({
   selector: 'app-root',
@@ -15,7 +27,7 @@ import { NotificationDialogComponent } from './notification-dialog/notification-
 export class AppComponent {
   title = 'Wordle-Frontend';
 
-  constructor(private dialog: MatDialog) {}
+  constructor(private dialog: MatDialog, private changeDetector: ChangeDetectorRef) { }
 
   keyboardMapping: { [key: string]: string } = {
     q: 'Љ', w: 'Њ', e: 'Е', r: 'Р', t: 'Т', y: 'З', u: 'У', i: 'И',
@@ -31,12 +43,18 @@ export class AppComponent {
   currentCol = 0;
 
   notificationMessage: string | null = null;
-  notificationType: string = 'success'; 
+  notificationType: string = 'success';
+
+  gameStatus: 'IN_PROGRESS' | 'COMPLETED' = 'COMPLETED'; // Default value
+  numberOfTries: number = 0;
+  playerId: string = '';
+  guessedWordsDto: GuessedWord[] = [];
 
   ngOnInit() {
-    this.startGame();
+    this.startGame().then(() => {
+      this.updateKeyboardColor('Т', '#568c52');
+    });
   }
-
   typeCharacter(char: string) {
     if (this.currentRow < 6 && this.currentCol < 5) {
       this.grid[this.currentRow][this.currentCol] = char;
@@ -52,19 +70,20 @@ export class AppComponent {
   }
 
   getKeyboardKeyColor(letter: string): string {
-    return this.keyboardColors[letter] || '#818384'; 
+    letter = letter.toLowerCase();
+    return this.keyboardColors[letter] || '#818384';
   }
 
   submit() {
     if (this.currentCol === 5) {
       const guessedWord = this.grid[this.currentRow].join('');
-      const playerId = 'd339d64b-b29a-4f11-8b59-f6f71f521310';
-  
+      let playerId = localStorage.getItem("playerId");
+
       const payload = {
         playerId,
         guessedWord,
       };
-  
+
       fetch('http://localhost:8080/api/v1/game/submit-guess', {
         method: 'PUT',
         headers: {
@@ -77,77 +96,144 @@ export class AppComponent {
             switch (response.status) {
               case 400:
                 return response.text().then((message) => {
-                  this.openNotificationDialog( message || 'Лош захтев.');
+                  this.openNotificationDialog(message || 'Лош захтев.');
                   throw new Error(message || 'Лош захтев.');
                 });
               case 404:
-                this.openNotificationDialog( "Дата реч није у нашој бази!");
+                this.openNotificationDialog("Дата реч није у нашој бази!");
                 throw new Error("Дата реч није у нашој бази!");
               case 409:
-                this.openNotificationDialog( 'Реч је већ искоришћена.');
+                this.openNotificationDialog('Реч је већ искоришћена.');
                 throw new Error('Реч је већ искоришћена.');
               default:
-                this.openNotificationDialog( `Неочекивана грешка: ${response.statusText}`);
+                this.openNotificationDialog(`Неочекивана грешка: ${response.statusText}`);
                 throw new Error(`Неочекивана грешка: ${response.statusText}`);
             }
           }
           return response.json();
         })
         .then((data) => {
+
           const characters = data.guessedWordsDto[data.guessedWordsDto.length - 1].characters;
           const updatedRowColors = Array(5).fill('');
           Object.entries(characters).forEach(([index, status]) => {
             const idx = parseInt(index, 10);
             const letter = guessedWord[idx];
-  
+
             if (status === 'CORRECT') {
               updatedRowColors[idx] = '#568c52'; // Green
-              this.updateKeyboardColor(letter, '#568c52');
+              this.updateKeyboardColor(letter.toLowerCase(), '#568c52');
             } else if (status === 'PRESENT_BUT_MISPLACED') {
               updatedRowColors[idx] = '#b49e45'; // Yellow
-              this.updateKeyboardColor(letter, '#b49e45');
+              this.updateKeyboardColor(letter.toLowerCase(), '#b49e45');
             } else {
               updatedRowColors[idx] = '#3a3a3c'; // Gray
-              this.updateKeyboardColor(letter, '#3a3a3c');
+              this.updateKeyboardColor(letter.toLowerCase(), '#3a3a3c');
             }
           });
-  
+
           this.colors[this.currentRow] = updatedRowColors;
           this.currentRow++;
           this.currentCol = 0;
         })
         .catch((error) => {
           console.error('Error submitting guess:', error.message);
-  
+
           this.grid[this.currentRow] = Array(5).fill('');
           this.colors[this.currentRow] = Array(5).fill('');
           this.currentCol = 0;
         });
     }
   }
-  
 
-  startGame() {
-    const playerId = "d339d64b-b29a-4f11-8b59-f6f71f521310";
-    const payload = {
-      playerId: playerId
-    };
-
-    fetch("http://localhost:8080/api/v1/game/start", {
+  startGame(): Promise<void> {
+    return fetch("http://localhost:8080/api/v1/game/start", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ playerId: localStorage.getItem("playerId") })
     })
+      .then(response => response.json())
+      .then((data: GameData) => {
+        this.restoreGameState(data);
+        this.keyboardColors = {};
+        data.guessedWordsDto.forEach(word => {
+          Object.entries(word.characters).forEach(([index, status]) => {
+            const idx = parseInt(index, 10);
+            const letter = word.guessedWord[idx];
+
+            if (!this.keyboardColors[letter]) {
+              if (status === 'CORRECT') {
+                this.keyboardColors[letter] = '#568c52'; // Green
+              } else if (status === 'PRESENT_BUT_MISPLACED') {
+                this.keyboardColors[letter] = '#b49e45'; // Yellow
+              } else if (status === 'NOT_PRESENT') {
+                this.keyboardColors[letter] = '#3a3a3c'; // Gray
+              }
+            }
+          });
+        });
+
+        Object.entries(this.keyboardColors).forEach(([letter, color]) => {
+          this.updateKeyboardColor(letter, color);
+        });
+
+        if (data.playerId) {
+          localStorage.setItem("playerId", data.playerId);
+        }
+      })
+      .catch(error => {
+        console.error('Error starting the game:', error);
+      });
   }
+
+
+
+  restoreGameState(gameData: GameData) {
+    this.gameStatus = gameData.gameStatus;
+    this.numberOfTries = gameData.numberOfTries;
+    this.playerId = gameData.playerId;
+    this.guessedWordsDto = gameData.guessedWordsDto;
+
+    this.guessedWordsDto.forEach((guessedWordData, rowIndex) => {
+      const guessedWord = guessedWordData.guessedWord;
+      const characters = guessedWordData.characters;
+
+      for (let colIndex = 0; colIndex < 5; colIndex++) {
+        this.grid[rowIndex][colIndex] = guessedWord[colIndex];
+        this.updateRowColor(rowIndex, colIndex, characters[colIndex]);
+
+        const letter = guessedWord[colIndex];
+      }
+    });
+
+    this.currentRow = this.guessedWordsDto.length;
+    this.currentCol = this.grid[this.currentRow].findIndex(cell => cell === '');
+  }
+
+
+  updateRowColor(rowIndex: number, colIndex: number, status: 'CORRECT' | 'PRESENT_BUT_MISPLACED' | 'NOT_PRESENT') {
+    let color = '';
+
+    if (status === 'CORRECT') {
+      color = '#568c52'; // Green
+    } else if (status === 'PRESENT_BUT_MISPLACED') {
+      color = '#b49e45'; // Yellow
+    } else {
+      color = '#3a3a3c'; // Gray
+    }
+
+    this.colors[rowIndex][colIndex] = color;
+  }
+
 
   showNotification(message: string, type: 'success' | 'error' = 'success') {
     this.notificationMessage = message;
     this.notificationType = type;
-  
+
     setTimeout(() => {
-      this.notificationMessage = null; // Clear the notification after 3 seconds
+      this.notificationMessage = null;
     }, 3000);
   }
 
@@ -173,6 +259,7 @@ export class AppComponent {
     }
   }
 
+
   getColorPriority(color: string): number {
     if (color === '#568c52') return 3; // Green
     if (color === '#b49e45') return 2; // Yellow
@@ -180,7 +267,23 @@ export class AppComponent {
     return 0; // Default
   }
 
-  openNotificationDialog( message: string): void {
+  getColorForStatus(status: 'CORRECT' | 'PRESENT_BUT_MISPLACED' | 'NOT_PRESENT'): string {
+
+    if (status === 'CORRECT') {
+
+      return '#568c52'; // Green
+
+    } else if (status === 'PRESENT_BUT_MISPLACED') {
+
+      return '#b49e45'; // Yellow
+
+    } else {
+
+      return '#3a3a3c'; // Gray
+    }
+  }
+
+  openNotificationDialog(message: string): void {
     this.dialog.open(NotificationDialogComponent, {
       data: { message },
       panelClass: 'custom-dialog-container',
