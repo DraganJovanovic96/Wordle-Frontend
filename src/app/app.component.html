@@ -7,8 +7,12 @@
 <div class="wordle-container">
   <!-- Grid Section -->
   <div class="wordle-grid">
-    <div class="wordle-row" *ngFor="let row of grid">
-      <div class="wordle-box" *ngFor="let box of row">
+    <div class="wordle-row" *ngFor="let row of grid; let rowIndex = index">
+      <div
+        class="wordle-box"
+        *ngFor="let box of row; let colIndex = index"
+        [ngStyle]="{ 'background-color': colors[rowIndex][colIndex] }"
+      >
         {{ box }}
       </div>
     </div>
@@ -17,42 +21,36 @@
   <!-- Keyboard Section -->
   <div class="keyboard">
     <!-- First row -->
-    <button class="key" (click)="typeCharacter('Љ')">Љ</button>
-    <button class="key" (click)="typeCharacter('Њ')">Њ</button>
-    <button class="key" (click)="typeCharacter('Е')">Е</button>
-    <button class="key" (click)="typeCharacter('Р')">Р</button>
-    <button class="key" (click)="typeCharacter('Т')">Т</button>
-    <button class="key" (click)="typeCharacter('З')">З</button>
-    <button class="key" (click)="typeCharacter('У')">У</button>
-    <button class="key" (click)="typeCharacter('И')">И</button>
-    <button class="key" (click)="typeCharacter('О')">О</button>
-    <button class="key" (click)="typeCharacter('П')">П</button>
-    <button class="key" (click)="typeCharacter('Ш')">Ш</button>
+      <button
+        class="key"
+        *ngFor="let letter of ['Љ', 'Њ', 'Е', 'Р', 'Т', 'З', 'У', 'И', 'О', 'П', 'Ш']"
+        [ngStyle]="{ 'background-color': getKeyboardKeyColor(letter) }"
+        (click)="typeCharacter(letter)"
+      >
+        {{ letter }}
+      </button>
 
     <!-- Second row -->
-    <button class="key" (click)="typeCharacter('А')">А</button>
-    <button class="key" (click)="typeCharacter('С')">С</button>
-    <button class="key" (click)="typeCharacter('Д')">Д</button>
-    <button class="key" (click)="typeCharacter('Ф')">Ф</button>
-    <button class="key" (click)="typeCharacter('Г')">Г</button>
-    <button class="key" (click)="typeCharacter('Х')">Х</button>
-    <button class="key" (click)="typeCharacter('Ј')">Ј</button>
-    <button class="key" (click)="typeCharacter('К')">К</button>
-    <button class="key" (click)="typeCharacter('Л')">Л</button>
-    <button class="key" (click)="typeCharacter('Ч')">Ч</button>
-    <button class="key" (click)="typeCharacter('Ћ')">Ћ</button>
+      <button
+        class="key"
+        *ngFor="let letter of ['А', 'С', 'Д', 'Ф', 'Г', 'Х', 'Ј', 'К', 'Л', 'Ч', 'Ћ']"
+        [ngStyle]="{ 'background-color': getKeyboardKeyColor(letter) }"
+        (click)="typeCharacter(letter)"
+      >
+        {{ letter }}
+      </button>
 
     <!-- Third row -->
     <div class="third-row">
       <button class="specialKey" (click)="submit()">ENTER</button>
-      <button class="key" (click)="typeCharacter('Џ')">Џ</button>
-      <button class="key" (click)="typeCharacter('Ц')">Ц</button>
-      <button class="key" (click)="typeCharacter('В')">В</button>
-      <button class="key" (click)="typeCharacter('Б')">Б</button>
-      <button class="key" (click)="typeCharacter('Н')">Н</button>
-      <button class="key" (click)="typeCharacter('М')">М</button>
-      <button class="key" (click)="typeCharacter('Ђ')">Ђ</button>
-      <button class="key" (click)="typeCharacter('Ж')">Ж</button>
+      <button
+        class="key"
+        *ngFor="let letter of ['Џ', 'Ц', 'В', 'Б', 'Н', 'М', 'Ђ', 'Ж']"
+        [ngStyle]="{ 'background-color': getKeyboardKeyColor(letter) }"
+        (click)="typeCharacter(letter)"
+      >
+        {{ letter }}
+      </button>
       <button class="specialKey" (click)="deleteCharacter()">
         <i class="fa fa-angle-double-left"></i>
       </button>
