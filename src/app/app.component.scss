@@ -37,6 +37,12 @@ app-root {
   right: 1rem;
   font-size: 24px;
   color: gold;
+  cursor: pointer;  
+  transition: transform 0.3s ease; 
+
+  &:hover {
+    transform: scale(1.1);  
+  }
 }
 
 .wordle-divider {
