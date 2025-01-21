@@ -1,0 +1,226 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.title-container {
+  display: flex;
+  align-items: center;
+
+  .recko-logo {
+    height: 3.5rem; 
+    margin-right: auto; 
+  }
+}
+
+app-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.wordle-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+  margin-top: 0.5rem;
+}
+
+.wordle-title {
+  font-size: 44px;
+  color: #ffffff;
+  margin: 0;
+}
+
+.wordle-trophy {
+  display: flex;
+  margin-top: 1%;
+}
+
+.trophy-icon {
+  position: absolute;
+  right: 1rem;
+  font-size: 24px;
+  color: gold;
+  cursor: pointer;  
+  transition: transform 0.3s ease; 
+
+  &:hover {
+    transform: scale(1.3);  
+  }
+}
+
+.wordle-divider {
+  width: 99%;
+  border: 1px solid #5c5b59;
+}
+
+.wordle-grid {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 5px;
+  margin: 0 auto;
+}
+
+.wordle-row {
+  display: flex;
+  gap: 5px;
+}
+
+.wordle-box {
+  width: 50px;
+  height: 50px;
+  border: 1px solid #5c5b59;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  text-transform: uppercase;
+}
+
+.keyboard {
+  display: grid;
+  grid-template-columns: repeat(11, 1fr);
+  gap: 5px;
+  max-width: 55%;
+  margin: 0 auto;
+  padding: 1%;
+  padding-bottom: 0%;
+}
+
+.key,
+.specialKey {
+  background-color: #818384;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  height: 50px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.third-row {
+  grid-template-columns: 1.5fr repeat(8, 1fr) 1.5fr;
+  grid-column: span 11;
+  display: grid;
+  gap: 5px;
+}
+
+.flip-animation {
+  animation: flip 0.5s forwards;
+}
+
+@keyframes flip {
+  0% {
+    transform: rotateY(0deg);
+  }
+  50% {
+    transform: rotateY(90deg);
+    background-color: #ffffff;
+  }
+  100% {
+    transform: rotateY(0deg);
+  }
+}
+
+@media (max-width: 767px) {
+  .wordle-title {
+    font-size: 5vh;
+  }
+
+  .trophy-icon {
+    font-size: 3vh;
+  }
+
+  .wordle-box {
+    width: 15vw;
+    height: 9vh;
+    font-size: 4dvh;
+  }
+
+  .key {
+    height: 13.6vw;
+    font-size: 4dvw;
+  }
+
+  .specialKey {
+    height: 13.6vw;
+    width: 15vw;
+    font-size: 3.8dvw;
+  }
+
+  .keyboard {
+    display: grid;
+    grid-template-columns: repeat(11, 1fr);
+    gap: 5px;
+    max-width: 95%;
+    margin: 0 auto;
+    margin-top: 3%;
+  }
+
+  .wordle-grid {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .wordle-header {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .wordle-title {
+    font-size: 5dvh;
+  }
+
+  .trophy-icon {
+    font-size: 3dvh;
+  }
+
+  .wordle-box {
+    width: 14dvw;
+    height: 8dvh;
+    font-size: 4dvh;
+  }
+
+  .key {
+    height: 16.6dvw;
+    font-size: 4dvw;
+  }
+
+  .specialKey {
+    height: 16.6dvw;
+    width: 13dvw;
+    font-size: 3.8dvw;
+  }
+
+  .keyboard {
+    display: grid;
+    grid-template-columns: repeat(11, 1fr);
+    max-width: 95%;
+    position: absolute;
+    bottom: 4dvh;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+  }
+
+  .wordle-grid {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 0.75dvh;
+  }
+}
