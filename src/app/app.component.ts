@@ -5,6 +5,9 @@ import { MatDialog } from '@angular/material/dialog';
 import { NotificationDialogComponent } from './notification-dialog/notification-dialog.component';
 import { HttpClient } from '@angular/common/http';
 import { WinRateDialogComponent } from './win-rate-dialogue/win-rate-dialogue.component';
+import { environment } from '../environments/environment';
+
+const BASIC_URL = environment.apiUrl;
 
 interface GuessedWord {
   guessedWord: string;
@@ -27,8 +30,6 @@ interface GameData {
 })
 export class AppComponent {
   title = 'Wordle-Frontend';
-
-  private readonly apiUrl = 'http://localhost:8080/api/v1';
 
   constructor(private dialog: MatDialog, private http: HttpClient) { }
 
@@ -66,7 +67,7 @@ export class AppComponent {
       return;
     }
   
-    this.http.post('http://localhost:8080/api/v1/win-rate', { playerId }).subscribe(
+    this.http.post(`${BASIC_URL}win-rate`, { playerId }).subscribe(
       (response: any) => {
         this.openWinRateDialog(response.winRate, response.numberOfWins, response.numberOfLoses);
       },
@@ -131,7 +132,7 @@ export class AppComponent {
         guessedWord,
       };
   
-      this.http.put(`${this.apiUrl}/game/submit-guess`, payload).subscribe({
+      this.http.put(`${BASIC_URL}game/submit-guess`, payload).subscribe({
         next: (data: any) => {
           const characters = data.guessedWordsDto[data.guessedWordsDto.length - 1].characters;
           const updatedRowColors = Array(5).fill('');
@@ -215,7 +216,7 @@ export class AppComponent {
     const body = { playerId: localStorage.getItem("playerId") };
     const headers = { "Content-Type": "application/json" };
   
-    this.http.post<GameData>(`${this.apiUrl}/game/start`, body, { headers }).subscribe({
+    this.http.post<GameData>(`${BASIC_URL}game/start`, body, { headers }).subscribe({
       next: (data) => {
         this.restoreGameState(data);
         this.keyboardColors = {};
