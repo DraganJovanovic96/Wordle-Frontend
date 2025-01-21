@@ -2,8 +2,9 @@ import { Component, HostListener, Inject, PLATFORM_ID } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule, NgFor } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
-import { ChangeDetectorRef } from '@angular/core';
 import { NotificationDialogComponent } from './notification-dialog/notification-dialog.component';
+import { HttpClient } from '@angular/common/http';
+import { WinRateDialogComponent } from './win-rate-dialogue/win-rate-dialogue.component';
 
 interface GuessedWord {
   guessedWord: string;
@@ -11,7 +12,7 @@ interface GuessedWord {
 }
 
 interface GameData {
-  gameStatus: 'IN_PROGRESS' | 'COMPLETED';
+  gameStatus: 'IN_PROGRESS' | 'WIN' | 'LOSE';
   numberOfTries: number;
   playerId: string;
   guessedWordsDto: GuessedWord[];
@@ -27,7 +28,9 @@ interface GameData {
 export class AppComponent {
   title = 'Wordle-Frontend';
 
-  constructor(private dialog: MatDialog, private changeDetector: ChangeDetectorRef) { }
+  private readonly apiUrl = 'http://localhost:8080/api/v1';
+
+  constructor(private dialog: MatDialog, private http: HttpClient) { }
 
   keyboardMapping: { [key: string]: string } = {
     q: 'Љ', w: 'Њ', e: 'Е', r: 'Р', t: 'Т', y: 'З', u: 'У', i: 'И',
@@ -45,16 +48,46 @@ export class AppComponent {
   notificationMessage: string | null = null;
   notificationType: string = 'success';
 
-  gameStatus: 'IN_PROGRESS' | 'COMPLETED' = 'COMPLETED'; // Default value
+  gameStatus: 'IN_PROGRESS' | 'WIN' | 'LOSE' = 'IN_PROGRESS';
   numberOfTries: number = 0;
   playerId: string = '';
   guessedWordsDto: GuessedWord[] = [];
 
-  ngOnInit() {
-    this.startGame().then(() => {
-      this.updateKeyboardColor('Т', '#568c52');
+  ngOnInit(): void {
+    this.startGame();
+  }
+
+  showWinRate(): void {
+    const playerId = localStorage.getItem('playerId');
+    if (!playerId) {
+      console.log('Player ID not found in localStorage');
+      return;
+    }
+  
+    // Send a POST request to fetch the win rate data
+    this.http.post('http://localhost:8080/api/v1/win-rate', { playerId }).subscribe(
+      (response: any) => {
+        // Open the dialog and pass the win rate, wins, and losses data
+        this.openWinRateDialog(response.winRate, response.numberOfWins, response.numberOfLoses);
+      },
+      (error) => {
+        console.error('Error fetching win rate:', error);
+      }
+    );
+  }
+  
+  // Open the dialog with the win rate, wins, and losses data
+  openWinRateDialog(winRate: number, numberOfWins: number, numberOfLoses: number): void {
+    const dialogRef = this.dialog.open(WinRateDialogComponent, {
+      width: '350px',
+      data: { winRate, numberOfWins, numberOfLoses }
+    });
+  
+    dialogRef.afterClosed().subscribe(result => {
+      console.log('Dialog closed');
     });
   }
+
   typeCharacter(char: string) {
     if (this.currentRow < 6 && this.currentCol < 5) {
       this.grid[this.currentRow][this.currentCol] = char;
@@ -74,48 +107,21 @@ export class AppComponent {
     return this.keyboardColors[letter] || '#818384';
   }
 
-  submit() {
+  submit(): void {
     if (this.currentCol === 5) {
       const guessedWord = this.grid[this.currentRow].join('');
-      let playerId = localStorage.getItem("playerId");
+      const playerId = localStorage.getItem('playerId');
 
       const payload = {
         playerId,
         guessedWord,
       };
 
-      fetch('http://localhost:8080/api/v1/game/submit-guess', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      })
-        .then((response) => {
-          if (!response.ok) {
-            switch (response.status) {
-              case 400:
-                return response.text().then((message) => {
-                  this.openNotificationDialog(message || 'Лош захтев.');
-                  throw new Error(message || 'Лош захтев.');
-                });
-              case 404:
-                this.openNotificationDialog("Дата реч није у нашој бази!");
-                throw new Error("Дата реч није у нашој бази!");
-              case 409:
-                this.openNotificationDialog('Реч је већ искоришћена.');
-                throw new Error('Реч је већ искоришћена.');
-              default:
-                this.openNotificationDialog(`Неочекивана грешка: ${response.statusText}`);
-                throw new Error(`Неочекивана грешка: ${response.statusText}`);
-            }
-          }
-          return response.json();
-        })
-        .then((data) => {
-
+      this.http.put(`${this.apiUrl}/game/submit-guess`, payload).subscribe({
+        next: (data: any) => {
           const characters = data.guessedWordsDto[data.guessedWordsDto.length - 1].characters;
           const updatedRowColors = Array(5).fill('');
+
           Object.entries(characters).forEach(([index, status]) => {
             const idx = parseInt(index, 10);
             const letter = guessedWord[idx];
@@ -135,34 +141,41 @@ export class AppComponent {
           this.colors[this.currentRow] = updatedRowColors;
           this.currentRow++;
           this.currentCol = 0;
-        })
-        .catch((error) => {
-          console.error('Error submitting guess:', error.message);
+        },
+        error: (error) => {
+          if (error.status === 400) {
+            this.openNotificationDialog(error.error || 'Лош захтев.');
+          } else if (error.status === 404) {
+            this.openNotificationDialog('Дата реч није у нашој бази!');
+          } else if (error.status === 409) {
+            this.openNotificationDialog('Реч је већ искоришћена.');
+          } else {
+            this.openNotificationDialog(`Неочекивана грешка: ${error.message}`);
+          }
 
+          // Reset the current row on error
           this.grid[this.currentRow] = Array(5).fill('');
           this.colors[this.currentRow] = Array(5).fill('');
           this.currentCol = 0;
-        });
+        },
+      });
     }
   }
 
-  startGame(): Promise<void> {
-    return fetch("http://localhost:8080/api/v1/game/start", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ playerId: localStorage.getItem("playerId") })
-    })
-      .then(response => response.json())
-      .then((data: GameData) => {
+  startGame(): void {
+    const body = { playerId: localStorage.getItem("playerId") };
+    const headers = { "Content-Type": "application/json" };
+  
+    this.http.post<GameData>(`${this.apiUrl}/game/start`, body, { headers }).subscribe({
+      next: (data) => {
         this.restoreGameState(data);
         this.keyboardColors = {};
-        data.guessedWordsDto.forEach(word => {
+  
+        data.guessedWordsDto.forEach((word) => {
           Object.entries(word.characters).forEach(([index, status]) => {
             const idx = parseInt(index, 10);
             const letter = word.guessedWord[idx];
-
+  
             if (!this.keyboardColors[letter]) {
               if (status === 'CORRECT') {
                 this.keyboardColors[letter] = '#568c52'; // Green
@@ -174,21 +187,20 @@ export class AppComponent {
             }
           });
         });
-
+  
         Object.entries(this.keyboardColors).forEach(([letter, color]) => {
           this.updateKeyboardColor(letter, color);
         });
-
+  
         if (data.playerId) {
           localStorage.setItem("playerId", data.playerId);
         }
-      })
-      .catch(error => {
+      },
+      error: (error) => {
         console.error('Error starting the game:', error);
-      });
+      },
+    });
   }
-
-
 
   restoreGameState(gameData: GameData) {
     this.gameStatus = gameData.gameStatus;
