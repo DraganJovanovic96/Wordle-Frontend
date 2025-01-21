@@ -41,12 +41,14 @@ export class AppComponent {
 
   grid: string[][] = Array.from({ length: 6 }, () => Array(5).fill(''));
   colors: string[][] = Array.from({ length: 6 }, () => Array(5).fill(''));
+  animateBox: boolean[][] = Array.from({ length: 6 }, () => Array(5).fill(false));
   keyboardColors: { [key: string]: string } = {};
   currentRow = 0;
   currentCol = 0;
 
   notificationMessage: string | null = null;
   notificationType: string = 'success';
+  isGameOver: boolean = false;
 
   gameStatus: 'IN_PROGRESS' | 'WIN' | 'LOSE' = 'IN_PROGRESS';
   numberOfTries: number = 0;
@@ -64,10 +66,8 @@ export class AppComponent {
       return;
     }
   
-    // Send a POST request to fetch the win rate data
     this.http.post('http://localhost:8080/api/v1/win-rate', { playerId }).subscribe(
       (response: any) => {
-        // Open the dialog and pass the win rate, wins, and losses data
         this.openWinRateDialog(response.winRate, response.numberOfWins, response.numberOfLoses);
       },
       (error) => {
@@ -76,7 +76,6 @@ export class AppComponent {
     );
   }
   
-  // Open the dialog with the win rate, wins, and losses data
   openWinRateDialog(winRate: number, numberOfWins: number, numberOfLoses: number): void {
     const dialogRef = this.dialog.open(WinRateDialogComponent, {
       width: '350px',
@@ -89,16 +88,31 @@ export class AppComponent {
   }
 
   typeCharacter(char: string) {
+    if (this.isGameOver) {
+      return;
+    }
+  
     if (this.currentRow < 6 && this.currentCol < 5) {
       this.grid[this.currentRow][this.currentCol] = char;
+      this.triggerAnimation(this.currentRow, this.currentCol);
       this.currentCol++;
     }
+  }
+
+  triggerAnimation(rowIndex: number, colIndex: number) {
+    this.animateBox[rowIndex][colIndex] = true;
+    setTimeout(() => {
+      this.animateBox[rowIndex][colIndex] = false;
+    }, 500);
   }
 
   deleteCharacter() {
     if (this.currentCol > 0) {
       this.currentCol--;
+
       this.grid[this.currentRow][this.currentCol] = '';
+
+      this.triggerAnimation(this.currentRow, this.currentCol);
     }
   }
 
@@ -111,33 +125,67 @@ export class AppComponent {
     if (this.currentCol === 5) {
       const guessedWord = this.grid[this.currentRow].join('');
       const playerId = localStorage.getItem('playerId');
-
+  
       const payload = {
         playerId,
         guessedWord,
       };
-
+  
       this.http.put(`${this.apiUrl}/game/submit-guess`, payload).subscribe({
         next: (data: any) => {
           const characters = data.guessedWordsDto[data.guessedWordsDto.length - 1].characters;
           const updatedRowColors = Array(5).fill('');
-
-          Object.entries(characters).forEach(([index, status]) => {
+  
+          Object.entries(characters).forEach(([index, status], i) => {
             const idx = parseInt(index, 10);
             const letter = guessedWord[idx];
-
-            if (status === 'CORRECT') {
-              updatedRowColors[idx] = '#568c52'; // Green
-              this.updateKeyboardColor(letter.toLowerCase(), '#568c52');
-            } else if (status === 'PRESENT_BUT_MISPLACED') {
-              updatedRowColors[idx] = '#b49e45'; // Yellow
-              this.updateKeyboardColor(letter.toLowerCase(), '#b49e45');
-            } else {
-              updatedRowColors[idx] = '#3a3a3c'; // Gray
-              this.updateKeyboardColor(letter.toLowerCase(), '#3a3a3c');
+  
+            const cellElement = document.querySelector(`#row-${this.currentRow}-col-${idx}`);
+            if (cellElement) {
+              cellElement.classList.add('flip-animation');
+              setTimeout(() => {
+                cellElement.classList.remove('flip-animation');
+              }, 500);
             }
+  
+            setTimeout(() => {
+              if (status === 'CORRECT') {
+                updatedRowColors[idx] = '#568c52'; 
+              } else if (status === 'PRESENT_BUT_MISPLACED') {
+                updatedRowColors[idx] = '#b49e45'; 
+              } else {
+                updatedRowColors[idx] = '#3a3a3c'; 
+              }
+            }, i * 300);
+  
+            setTimeout(() => {
+              if (status === 'CORRECT') {
+                this.updateKeyboardColor(letter.toLowerCase(), '#568c52');
+              } else if (status === 'PRESENT_BUT_MISPLACED') {
+                this.updateKeyboardColor(letter.toLowerCase(), '#b49e45');
+              } else {
+                this.updateKeyboardColor(letter.toLowerCase(), '#3a3a3c');
+              }
+            }, 1500); 
           });
 
+          const gameStatus = data.gameStatus;
+          const correctWord = data.correctWord;
+  
+          if (gameStatus === 'WIN') {
+            this.isGameOver = true;
+            setTimeout(() => {
+              this.showWinRate();
+            }, 1600); 
+          }
+  
+          if (gameStatus === 'LOSE') {
+            this.openNotificationDialog(correctWord.toUpperCase());
+            setTimeout(() => {
+              this.showWinRate();
+            }, 1000); 
+          }
+  
           this.colors[this.currentRow] = updatedRowColors;
           this.currentRow++;
           this.currentCol = 0;
@@ -152,8 +200,7 @@ export class AppComponent {
           } else {
             this.openNotificationDialog(`Неочекивана грешка: ${error.message}`);
           }
-
-          // Reset the current row on error
+  
           this.grid[this.currentRow] = Array(5).fill('');
           this.colors[this.currentRow] = Array(5).fill('');
           this.currentCol = 0;
@@ -161,6 +208,8 @@ export class AppComponent {
       });
     }
   }
+  
+  
 
   startGame(): void {
     const body = { playerId: localStorage.getItem("playerId") };
@@ -172,6 +221,7 @@ export class AppComponent {
         this.keyboardColors = {};
   
         data.guessedWordsDto.forEach((word) => {
+          
           Object.entries(word.characters).forEach(([index, status]) => {
             const idx = parseInt(index, 10);
             const letter = word.guessedWord[idx];
@@ -229,11 +279,11 @@ export class AppComponent {
     let color = '';
 
     if (status === 'CORRECT') {
-      color = '#568c52'; // Green
+      color = '#568c52'; 
     } else if (status === 'PRESENT_BUT_MISPLACED') {
-      color = '#b49e45'; // Yellow
+      color = '#b49e45'; 
     } else {
-      color = '#3a3a3c'; // Gray
+      color = '#3a3a3c'; 
     }
 
     this.colors[rowIndex][colIndex] = color;
@@ -273,25 +323,25 @@ export class AppComponent {
 
 
   getColorPriority(color: string): number {
-    if (color === '#568c52') return 3; // Green
-    if (color === '#b49e45') return 2; // Yellow
-    if (color === '#3a3a3c') return 1; // Gray
-    return 0; // Default
+    if (color === '#568c52') return 3; 
+    if (color === '#b49e45') return 2; 
+    if (color === '#3a3a3c') return 1; 
+    return 0; 
   }
 
   getColorForStatus(status: 'CORRECT' | 'PRESENT_BUT_MISPLACED' | 'NOT_PRESENT'): string {
 
     if (status === 'CORRECT') {
 
-      return '#568c52'; // Green
+      return '#568c52'; 
 
     } else if (status === 'PRESENT_BUT_MISPLACED') {
 
-      return '#b49e45'; // Yellow
+      return '#b49e45'; 
 
     } else {
 
-      return '#3a3a3c'; // Gray
+      return '#3a3a3c'; 
     }
   }
 
