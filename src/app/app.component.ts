@@ -1,11 +1,10 @@
 import { Component, HostListener, Inject, PLATFORM_ID } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule, NgFor } from '@angular/common';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { NotificationDialogComponent } from './notification-dialog/notification-dialog.component';
 import { HttpClient } from '@angular/common/http';
-import { WinRateDialogueComponent } from './win-rate-dialogue/win-rate-dialogue.component';
+import { WinRateDialogComponent } from './win-rate-dialogue/win-rate-dialogue.component';
 import { environment } from '../environments/environment';
 
 const BASIC_URL = environment.apiUrl;
@@ -25,13 +24,7 @@ interface GameData {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [
-    RouterOutlet, 
-    CommonModule, 
-    NgFor,
-    MatDialogModule,
-    MatButtonModule
-  ],
+  imports: [RouterOutlet, CommonModule, NgFor],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
@@ -76,7 +69,7 @@ export class AppComponent {
   
     this.http.post(`${BASIC_URL}win-rate`, { playerId }).subscribe(
       (response: any) => {
-        this.openWinRateDialog(response);
+        this.openWinRateDialog(response.winRate, response.numberOfWins, response.numberOfLoses);
       },
       (error) => {
         console.error('Error fetching win rate:', error);
@@ -84,16 +77,10 @@ export class AppComponent {
     );
   }
   
-  openWinRateDialog(data: any): void {
-    const dialogRef = this.dialog.open(WinRateDialogueComponent, {
-      width: '400px',
-      panelClass: 'custom-dialog-container',
-      data: {
-        played: data.numberOfWins + data.numberOfLoses,
-        winPercentage: Math.round((data.numberOfWins / (data.numberOfWins + data.numberOfLoses)) * 100),
-        numberOfWins: data.numberOfWins,
-        numberOfLoses: data.numberOfLoses,
-      }
+  openWinRateDialog(winRate: number, numberOfWins: number, numberOfLoses: number): void {
+    const dialogRef = this.dialog.open(WinRateDialogComponent, {
+      width: '350px',
+      data: { winRate, numberOfWins, numberOfLoses }
     });
   
     dialogRef.afterClosed().subscribe(result => {
