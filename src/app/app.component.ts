@@ -1,10 +1,11 @@
 import { Component, HostListener, Inject, PLATFORM_ID } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule, NgFor } from '@angular/common';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
 import { NotificationDialogComponent } from './notification-dialog/notification-dialog.component';
 import { HttpClient } from '@angular/common/http';
-import { WinRateDialogComponent } from './win-rate-dialogue/win-rate-dialogue.component';
+import { WinRateDialogueComponent } from './win-rate-dialogue/win-rate-dialogue.component';
 import { environment } from '../environments/environment';
 
 const BASIC_URL = environment.apiUrl;
@@ -24,7 +25,13 @@ interface GameData {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CommonModule, NgFor],
+  imports: [
+    RouterOutlet, 
+    CommonModule, 
+    NgFor,
+    MatDialogModule,
+    MatButtonModule
+  ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
@@ -69,7 +76,7 @@ export class AppComponent {
   
     this.http.post(`${BASIC_URL}win-rate`, { playerId }).subscribe(
       (response: any) => {
-        this.openWinRateDialog(response.winRate, response.numberOfWins, response.numberOfLoses);
+        this.openWinRateDialog(response);
       },
       (error) => {
         console.error('Error fetching win rate:', error);
@@ -77,10 +84,16 @@ export class AppComponent {
     );
   }
   
-  openWinRateDialog(winRate: number, numberOfWins: number, numberOfLoses: number): void {
-    const dialogRef = this.dialog.open(WinRateDialogComponent, {
-      width: '350px',
-      data: { winRate, numberOfWins, numberOfLoses }
+  openWinRateDialog(data: any): void {
+    const dialogRef = this.dialog.open(WinRateDialogueComponent, {
+      width: '400px',
+      panelClass: 'custom-dialog-container',
+      data: {
+        played: data.numberOfWins + data.numberOfLoses,
+        winPercentage: Math.round((data.numberOfWins / (data.numberOfWins + data.numberOfLoses)) * 100),
+        numberOfWins: data.numberOfWins,
+        numberOfLoses: data.numberOfLoses,
+      }
     });
   
     dialogRef.afterClosed().subscribe(result => {
